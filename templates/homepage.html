@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kidney Stone Detection</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 font-sans">
+
+  <div class="flex min-h-screen">
+    <!-- Sidebar -->
+    <aside class="w-64 bg-blue-900 text-white p-6 space-y-6">
+      <h2 class="text-2xl font-bold">Menu</h2>
+      <nav class="flex flex-col space-y-4 text-lg">
+        <button onclick="showHome()" class="text-left hover:bg-blue-700 p-2 rounded">Home</button>
+        <button onclick="showUploadOptions()" class="text-left hover:bg-blue-700 p-2 rounded">Upload New</button>
+        <button onclick="showSettings()" class="text-left hover:bg-blue-700 p-2 rounded">Settings</button>
+      </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 p-10 relative">
+      <div id="mainContent" class="text-center mb-10"></div>
+      <!-- Chatbot (initially hidden) -->
+      <div id="chatbot" class="hidden fixed right-6 bottom-6 w-96 bg-white border border-gray-300 rounded-lg shadow-lg flex flex-col">
+        <div class="bg-blue-700 text-white px-4 py-2 rounded-t-lg text-lg font-semibold">
+          Ask Me Anything
+        </div>
+        <div id="chatHistory" class="flex-1 overflow-y-auto p-4 space-y-2 text-sm max-h-80"></div>
+        <div class="p-2 border-t flex items-center">
+          <input id="chatInput" type="text" placeholder="Type your question..." class="flex-1 p-2 border rounded-l-md text-sm focus:outline-none">
+          <button onclick="handleUserResponse()" class="bg-blue-700 text-white px-4 py-2 rounded-r-md text-sm">Send</button>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const questions = [
+      "Are you experiencing severe lower back or side pain?",
+      "Do you feel nausea or vomiting along with the pain?",
+      "Are you noticing blood in your urine?",
+      "Are you having pain while urinating or frequent urination?",
+      "Are you having fever or chills?"
+    ];
+    let chatHistory = document.getElementById("chatHistory");
+    let questionIndex, symptoms, diagnosisComplete;
+
+    function showHome() {
+      document.getElementById("mainContent").innerHTML = `
+        <h2 class="text-4xl font-bold text-center text-blue-700 mt-10">
+          Welcome To Kidney Stone Detection
+        </h2>`;
+      showChatbot();
+      startSymptomCheck();
+    }
+
+    function showChatbot() {
+      document.getElementById("chatbot").classList.remove("hidden");
+      chatHistory.innerHTML = ''; // clear history each time
+    }
+
+    function startSymptomCheck() {
+      questionIndex = 0;
+      symptoms = [];
+      diagnosisComplete = false;
+      addBotMessage("Hi! Let me ask you a few questions to see if you may have kidney stones.");
+      askNextQuestion();
+    }
+
+    function askNextQuestion() {
+      if (questionIndex < questions.length) {
+        addBotMessage(questions[questionIndex]);
+      } else {
+        finishDiagnosis();
+      }
+    }
+
+    function addBotMessage(text) {
+      const msg = document.createElement('div');
+      msg.className = "bg-gray-100 p-2 rounded self-start max-w-xs";
+      msg.innerText = text;
+      chatHistory.appendChild(msg);
+      chatHistory.scrollTop = chatHistory.scrollHeight;
+    }
+
+    function addUserMessage(text) {
+      const msg = document.createElement('div');
+      msg.className = "bg-blue-100 p-2 rounded self-end max-w-xs text-right";
+      msg.innerText = text;
+      chatHistory.appendChild(msg);
+      chatHistory.scrollTop = chatHistory.scrollHeight;
+    }
+
+    function handleUserResponse() {
+      const input = document.getElementById("chatInput");
+      const answer = input.value.trim().toLowerCase();
+      if (!answer) return;
+      addUserMessage(answer);
+      input.value = "";
+
+      if (!diagnosisComplete) {
+        symptoms.push(answer.startsWith("y"));
+        questionIndex++;
+        askNextQuestion();
+      } else {
+        respondToGeneralQuestions(answer);
+      }
+    }
+
+    function finishDiagnosis() {
+      diagnosisComplete = true;
+      const yesCount = symptoms.filter(Boolean).length;
+      if (yesCount >= 3) {
+        addBotMessage("Based on your symptoms, it’s likely you may have kidney stones. Please consult a doctor for confirmation.");
+        addBotMessage("🔍 Would you like to know about: Diet, Prescriptions, or Precautions?");
+      } else {
+        addBotMessage("It doesn’t look like you have enough symptoms for kidney stones, but it’s always safe to consult a doctor.");
+      }
+    }
+
+    function respondToGeneralQuestions(input) {
+      const text = input.toLowerCase();
+      if (text.includes("diet")) {
+        addBotMessage("🫗 Drink 2‑3 liters water daily. Avoid salt, sugar & oxalate‑rich foods (spinach, nuts).");
+      } else if (text.includes("precaution")) {
+        addBotMessage("✅ Stay hydrated, limit salt & red meat, avoid sugary drinks, and get regular checkups.");
+      } else if (text.includes("prescription") || text.includes("treatment")) {
+        addBotMessage("📈 Common treatments: pain relievers, alpha blockers, possibly shock wave therapy. Consult your doctor.");
+      } else {
+        addBotMessage("I didn't get that. You can ask about 'diet', 'prescriptions', or 'precautions'.");
+      }
+    }
+  </script>
+<script>
+ function showUploadOptions() {
+      document.getElementById("chatbot").classList.add("hidden");
+      const container = document.getElementById("mainContent");
+
+      container.innerHTML = `
+        <h2 class="text-3xl font-semibold text-center text-gray-700 mb-6">Kidney Stone Prediction</h2>
+        <form id="predictForm" class="max-w-md mx-auto bg-white p-6 rounded shadow" enctype="multipart/form-data">
+          <input type="file" name="image" accept="image/*" required class="mb-4 w-full p-2 border rounded">
+          <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 w-full">Predict</button>
+        </form>
+        <div id="predictionResult" class="mt-6 max-w-2xl mx-auto"></div>
+      `;
+
+      document.getElementById("predictForm").addEventListener("submit", async function (e) {
+        e.preventDefault();
+        const form = e.target;
+        const formData = new FormData(form);
+
+        try {
+          const response = await fetch("", {
+            method: "POST",
+            body: formData,
+            headers: { "X-CSRFToken": "{{ csrf_token }}" }
+          });
+
+          const data = await response.json();
+          const resultContainer = document.getElementById("predictionResult");
+
+          if (data.status === "detected") {
+            let stonesHtml = data.stones.map((stone, idx) => `
+              <tr class="border">
+                <td class="px-4 py-2">${idx + 1}</td>
+                <td class="px-4 py-2">${stone.size}</td>
+                <td class="px-4 py-2">${stone.location}</td>
+              </tr>
+            `).join("");
+
+            resultContainer.innerHTML = `
+              <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-4" role="alert">
+                <p class="font-bold">${data.message}</p>
+              </div>
+              <table class="table-auto w-full bg-white border rounded shadow mt-4">
+                <thead class="bg-gray-200">
+                  <tr>
+                    <th class="px-4 py-2">#</th>
+                    <th class="px-4 py-2">Size</th>
+                    <th class="px-4 py-2">Location</th>
+                  </tr>
+                </thead>
+                <tbody>${stonesHtml}</tbody>
+              </table>
+            `;
+          } else {
+            resultContainer.innerHTML = `
+              <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4" role="alert">
+                <p class="font-bold">${data.message}</p>
+              </div>
+            `;
+          }
+        } catch (error) {
+          document.getElementById("predictionResult").innerHTML = `
+            <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4">
+              <p class="font-bold">❌ Error during prediction.</p>
+            </div>
+          `;
+        }
+      });
+    }
+
+    function showSettings() {
+      document.getElementById("chatbot").classList.add("hidden");
+      const container = document.getElementById("mainContent");
+      container.innerHTML = `
+        <h2 class="text-3xl font-semibold text-center text-gray-700 mb-6">Settings</h2>
+        <div class="flex flex-col items-center gap-6">
+          <button onclick="logout()" class="bg-red-600 text-white px-6 py-3 rounded-lg shadow hover:bg-red-700 w-64 text-lg">🔓 Logout</button>
+        </div>`;
+    }
+
+    function logout() {
+      window.location.href = '/';
+    }
+
+    // Load default tab
+    window.onload = function () {
+      const defaultTab = sessionStorage.getItem('homepage_tab') || 'home';
+      if (defaultTab === 'home') showHome();
+      else showUploadOptions();
+      sessionStorage.removeItem('homepage_tab');
+    };
+  </script>
+
+</body>
+</html>

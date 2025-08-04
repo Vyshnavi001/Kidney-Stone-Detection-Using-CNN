@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Kidney Stone Detection – Welcome</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f2f2f2;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+    header {
+      background: #2c3e50;
+      color: white;
+      text-align: center;
+      padding: 20px;
+      font-size: 2.5rem;
+    }
+    main {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+    .screen { display: none; text-align: center; }
+    .screen.active { display: block; }
+    .btn {
+      padding: 15px 30px;
+      margin: 10px;
+      font-size: 1.2rem;
+      color: white;
+      background: #27ae60;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .btn:hover { background: #219150; }
+    .login-container {
+      display: flex;
+      gap: 40px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .login-box, .form-container {
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0px 2px 8px rgba(0,0,0,0.1);
+      width: 360px;
+      text-align: left;
+    }
+    .login-box h2, .form-container h1 { text-align: center; margin-bottom: 20px; }
+    label { display: block; margin-bottom: 8px; }
+    input {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 15px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+    button {
+      width: 100%;
+      padding: 12px;
+      font-size: 1rem;
+      background: #2980b9;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover { background: #1f6391; }
+    .login-links {
+      display: flex;
+      justify-content: flex-start;
+      font-size: 0.9rem;
+    }
+    .login-links a {
+      color: #2980b9;
+      text-decoration: none;
+      cursor: pointer;
+    }
+    .login-links a:hover { text-decoration: underline; }
+    .back-btn {
+      margin-top: 20px;
+      display: inline-block;
+      color: #2980b9;
+      text-decoration: none;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+    .back-btn:hover { text-decoration: underline; }
+    fieldset {
+      margin-bottom: 20px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      padding: 15px;
+    }
+    legend { padding: 0 10px; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <header>WELCOME TO KIDNEY STONE DETECTION</header>
+  <main>
+    <div id="landing-screen" class="screen active">
+      <button class="btn" onclick="showScreen('patient')">Log In</button>
+      <button class="btn" onclick="showScreen('create-account')">Sign Up</button>
+    </div>
+
+    <div id="patient-screen" class="screen">
+      <div class="login-container">
+        <div class="login-box">
+          <h2>Patient Login</h2>
+          <form onsubmit="handlePatientLogin(event)">
+            <label for="patient-id-login">Patient ID</label>
+            <input type="text" id="patient-id-login" required />
+            <label for="patient-password">Password</label>
+            <input type="password" id="patient-password" autocomplete="new-password" required />
+            <button type="submit">Login</button>
+            <div class="login-links">
+              <a onclick="openCreateAccount('patient')">Create new account?</a>
+            </div>
+          </form>
+        </div>
+      </div>
+      <a class="back-btn" onclick="showScreen('landing')">&larr; Back</a>
+    </div>
+
+    <div id="create-account-screen" class="screen">
+      <div class="form-container">
+        <h1>Create a New Account</h1>
+        <form id="registration-form" onsubmit="return validateForm(event)">
+          <fieldset>
+            <legend>Personal Information</legend>
+            <label for="first-name">First Name:</label>
+            <input type="text" id="first-name" required />
+            <label for="middle-name">Middle Name:</label>
+            <input type="text" id="middle-name" />
+            <label for="last-name">Last Name:</label>
+            <input type="text" id="last-name" required />
+            <label for="age">Age:</label>
+            <input type="number" id="age" min="0" max="120" required />
+          </fieldset>
+          <fieldset>
+            <legend>Account Information</legend>
+            <label for="user-id" id="user-id-label">Patient ID:</label>
+            <input type="text" id="user-id" required />
+            <label for="email">Email ID:</label>
+            <input type="email" id="email" required />
+            <label for="password">Password:</label>
+            <input type="password" id="password" autocomplete="new-password" required />
+            <label for="confirm-password">Confirm Password:</label>
+            <input type="password" id="confirm-password" autocomplete="new-password" required />
+            <label><input type="checkbox" onclick="togglePasswordVisibility()" /> Show Password</label>
+          </fieldset>
+          <button type="submit">Create Account</button>
+        </form>
+      </div>
+      <a class="back-btn" onclick="returnToLogin()">&larr; Back to Login</a>
+    </div>
+  </main>
+
+  <script>
+    let currentUserType = 'patient';
+
+    function showScreen(name) {
+      ['landing', 'patient', 'create-account'].forEach(id => {
+        const el = document.getElementById(id + '-screen');
+        if (el) el.classList.remove('active');
+      });
+      const screenEl = document.getElementById(name + '-screen');
+      if (screenEl) screenEl.classList.add('active');
+    }
+
+    function openCreateAccount(userType) {
+      currentUserType = userType;
+      document.getElementById('registration-form').reset();
+      document.getElementById('user-id-label').textContent = 'Patient ID:';
+      showScreen('create-account');
+    }
+
+    function returnToLogin() {
+      showScreen('patient');
+    }
+
+    function togglePasswordVisibility() {
+      ['password', 'confirm-password'].forEach(id => {
+        const field = document.getElementById(id);
+        field.type = field.type === 'password' ? 'text' : 'password';
+      });
+    }
+
+    function validateForm(event) {
+      event.preventDefault();
+      const password = document.getElementById('password').value;
+      const confirmPassword = document.getElementById('confirm-password').value;
+
+      if (password !== confirmPassword) {
+        alert('Passwords do not match.');
+        return false;
+      }
+
+      const userId = document.getElementById('user-id').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const age = document.getElementById('age').value;
+
+      const userKey = `patient_users`;
+      const users = JSON.parse(localStorage.getItem(userKey)) || {};
+      if (users[userId]) {
+        alert(`Patient ID already exists.`);
+        return false;
+      }
+
+      users[userId] = { email, password, age };
+      localStorage.setItem(userKey, JSON.stringify(users));
+      alert("Account created successfully.");
+      returnToLogin();
+      return true;
+    }
+
+    function handlePatientLogin(e) {
+      e.preventDefault();
+      const id = document.getElementById('patient-id-login').value.trim();
+      const password = document.getElementById('patient-password').value;
+      const users = JSON.parse(localStorage.getItem('patient_users')) || {};
+      if (users[id] && users[id].password === password) {
+        alert('Patient login successful!');
+        sessionStorage.setItem('homepage_tab', 'home');
+        window.location.href = '/home/';
+      } else {
+        alert('Invalid patient credentials.');
+      }
+    }
+  </script>
+</body>
+</html>
